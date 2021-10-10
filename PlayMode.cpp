@@ -45,6 +45,7 @@ Load< WalkMeshes > phonebank_walkmeshes(LoadTagDefault, []() -> WalkMeshes const
 });
 
 PlayMode::PlayMode() : scene(*phonebank_scene) {
+
 	//create a player transform:
 	scene.transforms.emplace_back();
 	player.transform = &scene.transforms.back();
@@ -64,6 +65,7 @@ PlayMode::PlayMode() : scene(*phonebank_scene) {
 	player.camera->transform->rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
 	//start player walking at nearest walk point:
+	player.transform->position = glm::vec3(0.0, 0.0, 3.0f);
 	player.at = walkmesh->nearest_walk_point(player.transform->position);
 
 }

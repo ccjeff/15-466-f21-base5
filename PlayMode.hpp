@@ -36,4 +36,8 @@ struct PlayMode : Mode {
 		//camera is at player's head and will be pitched by mouse up/down motion:
 		Scene::Camera *camera = nullptr;
 	} player;
+
+	float player_speed = 0.0f;
+
+
 };

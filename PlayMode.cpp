@@ -12,6 +12,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include <random>
+#include <cmath>
 
 GLuint phonebank_meshes_for_lit_color_texture_program = 0;
 Load< MeshBuffer > phonebank_meshes(LoadTagDefault, []() -> MeshBuffer const * {
@@ -144,10 +145,22 @@ void PlayMode::update(float elapsed) {
 		//combine inputs into a move:
 		constexpr float PlayerSpeed = 3.0f;
 		glm::vec2 move = glm::vec2(0.0f);
-		if (left.pressed && !right.pressed) move.x =-1.0f;
-		if (!left.pressed && right.pressed) move.x = 1.0f;
-		if (down.pressed && !up.pressed) move.y =-1.0f;
-		if (!down.pressed && up.pressed) move.y = 1.0f;
+		if (left.pressed && !right.pressed) {
+			move.x =-0.8f * player_speed;
+		}
+		if (!left.pressed && right.pressed) {
+			move.x = 0.8f * player_speed;
+		}
+		if (down.pressed && !up.pressed) {
+			player_speed -= elapsed * 10;
+			player_speed = std::min(0.0f, player_speed);
+			move.y = -1.0f * player_speed;
+		}
+		if (!down.pressed && up.pressed) {
+			player_speed += elapsed * 10;
+			player_speed = std::max(50.0f, player_speed);
+			move.y = 1.0f * player_speed;
+		}
 
 		//make it so that moving diagonally doesn't go faster:
 		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <string>
 
+
 WalkMesh::WalkMesh(std::vector< glm::vec3 > const &vertices_, std::vector< glm::vec3 > const &normals_, std::vector< glm::uvec3 > const &triangles_)
 	: vertices(vertices_), normals(normals_), triangles(triangles_) {
 

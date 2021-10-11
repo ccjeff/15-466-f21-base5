@@ -16,3 +16,6 @@ $(DIST)/phone-bank.pnct : phone-bank.blend export-meshes.py
 
 $(DIST)/phone-bank.w : phone-bank.blend export-walkmeshes.py
     $(BLENDER) --background --python export-walkmeshes.py -- "phone-bank.blend:WalkMeshes" "$(DIST)/phone-bank.w" 
+"C:\Program Files\Blender Foundation\Blender 2.90\blender.exe" --background --python export-scene.py -- "phone-bank.blend:Platforms" "../dist/phone-bank.scene"
+"C:\Program Files\Blender Foundation\Blender 2.90\blender.exe" --background --python export-meshes.py -- "phone-bank.blend:Platforms" "../dist/phone-bank.pnct" 
+"C:\Program Files\Blender Foundation\Blender 2.90\blender.exe" --background --python export-walkmeshes.py -- "phone-bank.blend:WalkMeshes" "../dist/phone-bank.w" 

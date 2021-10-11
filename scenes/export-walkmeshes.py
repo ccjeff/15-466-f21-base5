@@ -182,8 +182,8 @@ for obj in bpy.data.objects:
 		avg = avg / len(ns)
 		for n in ns:
 			diff = (n - avg).length
-			if diff > 0.001:
-				print("Normal " + str(n) + " different than average " + str(avg) + " of " + str(len(ns)) + ".")
+			#if diff > 0.001:
+			#	print("Normal " + str(n) + " different than average " + str(avg) + " of " + str(len(ns)) + ".")
 		normals += struct.pack('fff', *avg)
 		normal_count += 1
 	

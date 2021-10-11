@@ -37,7 +37,7 @@ Load< Scene > phonebank_scene(LoadTagDefault, []() -> Scene const * {
 
 	});
 });
-
+std::vector<Mesh> fires;
 WalkMesh const *walkmesh = nullptr;
 Load< WalkMeshes > phonebank_walkmeshes(LoadTagDefault, []() -> WalkMeshes const * {
 	WalkMeshes *ret = new WalkMeshes(data_path("phone-bank.w"));
@@ -143,24 +143,12 @@ void PlayMode::update(float elapsed) {
 	//player walking:
 	{
 		//combine inputs into a move:
-		constexpr float PlayerSpeed = 100.0f;
+		constexpr float PlayerSpeed = 3.0f;
 		glm::vec2 move = glm::vec2(0.0f);
-		if (left.pressed && !right.pressed) {
-			move.x =-0.8f * player_speed;
-		}
-		if (!left.pressed && right.pressed) {
-			move.x = 0.8f * player_speed;
-		}
-		if (down.pressed && !up.pressed) {
-			player_speed -= elapsed * 10;
-			player_speed = std::min(0.0f, player_speed);
-			move.y = -1.0f * player_speed;
-		}
-		if (!down.pressed && up.pressed) {
-			player_speed += elapsed * 10;
-			player_speed = std::max(50.0f, player_speed);
-			move.y = 1.0f * player_speed;
-		}
+		if (left.pressed && !right.pressed) move.x =-1.0f;
+		if (!left.pressed && right.pressed) move.x = 1.0f;
+		if (down.pressed && !up.pressed) move.y =-1.0f;
+		if (!down.pressed && up.pressed) move.y = 1.0f;
 
 		//make it so that moving diagonally doesn't go faster:
 		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;

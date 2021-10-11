@@ -38,6 +38,6 @@ struct PlayMode : Mode {
 	} player;
 
 	float player_speed = 0.0f;
-
+	
 
 };

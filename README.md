@@ -1,4 +1,4 @@
-# (TODO: your game's title)
+# Frozen Treasure Hunt
 
 Author: Zhengjia Cao, Lingxi Zhang
 

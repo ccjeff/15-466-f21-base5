@@ -10,7 +10,6 @@
 #include <algorithm>
 #include <string>
 
-
 WalkMesh::WalkMesh(std::vector< glm::vec3 > const &vertices_, std::vector< glm::vec3 > const &normals_, std::vector< glm::uvec3 > const &triangles_)
 	: vertices(vertices_), normals(normals_), triangles(triangles_) {
 
@@ -27,18 +26,18 @@ WalkMesh::WalkMesh(std::vector< glm::vec3 > const &vertices_, std::vector< glm::
 	}
 
 	//DEBUG: are vertex normals consistent with geometric normals?
-	for (auto const &tri : triangles) {
-		glm::vec3 const &a = vertices[tri.x];
-		glm::vec3 const &b = vertices[tri.y];
-		glm::vec3 const &c = vertices[tri.z];
-		glm::vec3 out = glm::normalize(glm::cross(b-a, c-a));
+	// for (auto const &tri : triangles) {
+	// 	glm::vec3 const &a = vertices[tri.x];
+	// 	glm::vec3 const &b = vertices[tri.y];
+	// 	glm::vec3 const &c = vertices[tri.z];
+	// 	glm::vec3 out = glm::normalize(glm::cross(b-a, c-a));
 
-		float da = glm::dot(out, normals[tri.x]);
-		float db = glm::dot(out, normals[tri.y]);
-		float dc = glm::dot(out, normals[tri.z]);
+	// 	float da = glm::dot(out, normals[tri.x]);
+	// 	float db = glm::dot(out, normals[tri.y]);
+	// 	float dc = glm::dot(out, normals[tri.z]);
 
-		//assert(da > 0.1f && db > 0.1f && dc > 0.1f);
-	}
+	// 	assert(da > 0.1f && db > 0.1f && dc > 0.1f);
+	// }
 }
 
 //project pt to the plane of triangle a,b,c and return the barycentric weights of the projected point:
@@ -121,7 +120,10 @@ WalkPoint WalkMesh::nearest_walk_point(glm::vec3 const &world_point) const {
 	return closest;
 }
 
-
+//reference: walk_in_trangle and cross edge function inspired by https://github.com/wdlzz926/GrubDash-Simulator/blob/master/WalkMesh.cpp
+// 
+// I have tried many times but my own version of walk mesh is still very buggy...this works better but still have problems.
+// Used with modification. Will come back to this in future.
 void WalkMesh::walk_in_triangle(WalkPoint const &start, glm::vec3 const &step, WalkPoint *end_, float *time_) const {
 	assert(end_);
 	auto &end = *end_;

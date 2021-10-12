@@ -2,6 +2,7 @@
 
 #include "Scene.hpp"
 #include "WalkMesh.hpp"
+#include "Sound.hpp"
 
 #include <glm/glm.hpp>
 
@@ -16,6 +17,7 @@ struct PlayMode : Mode {
 	virtual bool handle_event(SDL_Event const &, glm::uvec2 const &window_size) override;
 	virtual void update(float elapsed) override;
 	virtual void draw(glm::uvec2 const &drawable_size) override;
+	glm::vec3 get_player_position();
 
 	//----- game state -----
 
@@ -23,7 +25,7 @@ struct PlayMode : Mode {
 	struct Button {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} left, right, down, up;
+	} left, right, down, up, space;
 
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
@@ -38,6 +40,9 @@ struct PlayMode : Mode {
 	} player;
 
 	float player_speed = 0.0f;
-	
-
+	uint8_t player_score = 0;
+	int is_win = -1;
+	float timer = 60.0;
+	std::shared_ptr< Sound::PlayingSample > bgm_loop;
+	std::vector<Scene::Transform*> treasures;
 };

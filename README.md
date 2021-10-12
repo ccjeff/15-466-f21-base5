@@ -1,8 +1,8 @@
 # (TODO: your game's title)
 
-Author: (TODO: your name)
+Author: Zhengjia Cao, Lingxi Zhang
 
-Design: (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
+Design: Move the player around in the terrain. Go find the lost treasures in the limited time.
 
 Screen Shot:
 
@@ -10,9 +10,24 @@ Screen Shot:
 
 How To Play:
 
-(TODO: describe the controls and (if needed) goals/strategy.)
+Use `w/a/s/d` keys to move around. Use `SPACE` key to get the treasure.
 
-Sources: (TODO: list a source URL for any assets you did not create yourself. Make sure you have a license for the asset.)
+Sources:
+- Music:
+
+BGM:
+Forest Walk by Alexander Nakarada | https://www.serpentsoundstudios.com
+Music promoted by https://www.chosic.com/free-music/all/
+Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+- WalkMesh: 
+
+Referenced from: https://github.com/wdlzz926/GrubDash-Simulator/blob/master/WalkMesh.cpp
+Used with modification.
+
+- Terrain model: 
+https://www.cgtrader.com/items/2015853/download-page
 
 This game was built with [NEST](NEST.md).
 

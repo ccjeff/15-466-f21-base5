@@ -7,7 +7,7 @@
 #include "Load.hpp"
 #include "gl_errors.hpp"
 #include "data_path.hpp"
-
+#include "Sound.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/quaternion.hpp>
 
@@ -37,7 +37,12 @@ Load< Scene > phonebank_scene(LoadTagDefault, []() -> Scene const * {
 
 	});
 });
-std::vector<Mesh> fires;
+
+Load< Sound::Sample > bgm_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("bgm.opus"));
+});
+
+// std::vector<Mesh> fires;
 WalkMesh const *walkmesh = nullptr;
 Load< WalkMeshes > phonebank_walkmeshes(LoadTagDefault, []() -> WalkMeshes const * {
 	WalkMeshes *ret = new WalkMeshes(data_path("phone-bank.w"));
@@ -45,12 +50,24 @@ Load< WalkMeshes > phonebank_walkmeshes(LoadTagDefault, []() -> WalkMeshes const
 	return ret;
 });
 
-PlayMode::PlayMode() : scene(*phonebank_scene) {
+float len(glm::vec3 x) {
+	return std::sqrt(x.x * x.x + x.y * x.y);
+}
 
+float distance(Scene::Transform &A, Scene::Transform &B){
+	return len((A.position) - (B.position));
+}
+
+glm::vec3 PlayMode::get_player_position() {
+	//the vertex position here was read from the model in blender:
+	return player.transform->make_local_to_world() * glm::vec4(-1.26137f, -11.861f, 0.0f, 1.0f);
+}
+
+
+PlayMode::PlayMode() : scene(*phonebank_scene) {
 	//create a player transform:
 	scene.transforms.emplace_back();
 	player.transform = &scene.transforms.back();
-
 	//create a player camera attached to a child of the player transform:
 	scene.transforms.emplace_back();
 	scene.cameras.emplace_back(&scene.transforms.back());
@@ -69,6 +86,13 @@ PlayMode::PlayMode() : scene(*phonebank_scene) {
 	player.transform->position = glm::vec3(0.0, 0.0, 3.0f);
 	player.at = walkmesh->nearest_walk_point(player.transform->position);
 
+	for (auto &transform : scene.transforms) {
+		if (transform.name.substr(0,4) == "Fire") {
+			treasures.emplace_back(&transform);
+			std::cout << "x: " <<transform.position.x << "y: " << transform.position.y << "z: " << transform.position.z << "\n";
+		}
+	}
+	bgm_loop = Sound::loop_3D(*bgm_sample, 1.0f, get_player_position(), 2.0f);
 }
 
 PlayMode::~PlayMode() {
@@ -96,6 +120,10 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			down.downs += 1;
 			down.pressed = true;
 			return true;
+		} else if (evt.key.keysym.sym == SDLK_SPACE) {
+			space.downs += 1;
+			space.pressed = true;
+			return true;
 		}
 	} else if (evt.type == SDL_KEYUP) {
 		if (evt.key.keysym.sym == SDLK_a) {
@@ -109,6 +137,9 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_s) {
 			down.pressed = false;
+			return true;
+		}  else if (evt.key.keysym.sym == SDLK_SPACE) {
+			space.pressed = false;
 			return true;
 		}
 	} else if (evt.type == SDL_MOUSEBUTTONDOWN) {
@@ -140,18 +171,47 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 }
 
 void PlayMode::update(float elapsed) {
+	timer -= elapsed;
+	if (timer <= 0.0f && player_score != 5) {
+		// game over with fail
+		is_win = 0;
+		return;
+	}
+	else if (player_score == 5) {
+		is_win = 1;
+		return;
+	}
 	//player walking:
 	{
 		//combine inputs into a move:
-		constexpr float PlayerSpeed = 3.0f;
+		// constexpr float PlayerSpeed = 3.0f;
 		glm::vec2 move = glm::vec2(0.0f);
 		if (left.pressed && !right.pressed) move.x =-1.0f;
 		if (!left.pressed && right.pressed) move.x = 1.0f;
-		if (down.pressed && !up.pressed) move.y =-1.0f;
-		if (!down.pressed && up.pressed) move.y = 1.0f;
+		if (down.pressed && !up.pressed) {
+			player_speed += elapsed;
+			player_speed = std::max(player_speed, 5.0f);
+			move.y =-1.0f;
+		}
+		if (!down.pressed && up.pressed) {
+			player_speed += elapsed;
+			player_speed = std::max(player_speed, 5.0f);
+			move.y = 1.0f;
+		}
+		if (space.pressed) {
+			// do distance check
+			for (auto t : treasures) {
+				if (distance(*t, *(player.transform)) <= 20.0f) {
+					// relocate the fire
+					++player_score;
+					// move to infinity so no one can see it
+					t->position = glm::vec3(99999999.0f, 99999999.0f, 99999999.0f);
+				}
+			}
+		}
 
 		//make it so that moving diagonally doesn't go faster:
-		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
+		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * player_speed * elapsed;
 
 		//get move in world coordinate system:
 		glm::vec3 remain = player.transform->make_local_to_world() * glm::vec4(move.x, move.y, 0.0f, 0.0f);
@@ -237,7 +297,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	player.camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 
 	//set up light type and position for lit_color_texture_program:
-	// TODO: consider using the Light(s) in the scene to do this
 	glUseProgram(lit_color_texture_program->program);
 	glUniform1i(lit_color_texture_program->LIGHT_TYPE_int, 1);
 	glUniform3fv(lit_color_texture_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f,-1.0f)));
@@ -264,6 +323,50 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		}
 	}
 	*/
+	// {
+	// 	glDisable(GL_DEPTH_TEST);
+	// 	DrawLines lines(player.camera->make_projection() * glm::mat4(player.camera->transform->make_world_to_local()));
+	// 	for (auto const &tri : walkmesh->triangles) {
+	// 		lines.draw(walkmesh->vertices[tri.x], walkmesh->vertices[tri.y], glm::u8vec4(0x88, 0x00, 0xff, 0xff));
+	// 		lines.draw(walkmesh->vertices[tri.y], walkmesh->vertices[tri.z], glm::u8vec4(0x88, 0x00, 0xff, 0xff));
+	// 		lines.draw(walkmesh->vertices[tri.z], walkmesh->vertices[tri.x], glm::u8vec4(0x88, 0x00, 0xff, 0xff));
+	// 	}
+	// }
+	{
+		// draw score
+		glDisable(GL_DEPTH_TEST);
+		float aspect = float(drawable_size.x) / float(drawable_size.y);
+		DrawLines bars(glm::mat4(
+			1.0f / aspect, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f));
+		constexpr float H = 0.09f;
+		
+		std::string lforce = " Current Score is: " + std::to_string(player_score);
+		bars.draw_text(lforce,
+					   glm::vec3(-aspect + 0.9f * H, -1.0 + 20.0f * H, 0.0),
+					   glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+					   glm::u8vec4(0xff, 0xff, 0xff, 0xff));
+		if (timer >= 0.0f) {
+			std::string rforce = "Time Remaining: " + std::to_string(timer);
+		bars.draw_text(rforce,
+					   glm::vec3(-aspect + 25.2f * H, -1.0 + 20.0f * H, 0.0),
+					   glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+					   glm::u8vec4(0xff, 0xff, 0xff, 0xff));
+		} 
+		if (is_win == 1) {
+			std::string winning = "You Win!!!!";
+			bars.draw_text( winning, glm::vec3(0, 0, 0.0),
+                                   glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+                                   glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		} else if (is_win == 0) {
+			std::string lossing = "You Lost!!!!";
+			bars.draw_text( lossing, glm::vec3(0, 0, 0.0),
+                                   glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+                                   glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		}
+	}
 
 	{ //use DrawLines to overlay some text:
 		glDisable(GL_DEPTH_TEST);

@@ -23,7 +23,9 @@ https://creativecommons.org/licenses/by/4.0/
 
 - WalkMesh: 
 
-Referenced from: https://github.com/wdlzz926/GrubDash-Simulator/blob/master/WalkMesh.cpp
+Referenced from: 
+1. https://github.com/wdlzz926/GrubDash-Simulator/blob/master/WalkMesh.cpp
+2. https://github.com/jianrongyu16/Planet-Delivery-Man/blob/master/WalkMesh.cpp
 Used with modification.
 
 - Terrain model: 

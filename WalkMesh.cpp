@@ -121,7 +121,7 @@ WalkPoint WalkMesh::nearest_walk_point(glm::vec3 const &world_point) const {
 }
 
 //reference: walk_in_trangle and cross edge function inspired by https://github.com/wdlzz926/GrubDash-Simulator/blob/master/WalkMesh.cpp
-// 
+// and https://github.com/jianrongyu16/Planet-Delivery-Man/blob/master/WalkMesh.cpp 
 // I have tried many times but my own version of walk mesh is still very buggy...this works better but still have problems.
 // Used with modification. Will come back to this in future.
 void WalkMesh::walk_in_triangle(WalkPoint const &start, glm::vec3 const &step, WalkPoint *end_, float *time_) const {
